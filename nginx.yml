@@ -1,0 +1,26 @@
+---
+# tasks file for nginx
+- hosts: webservers
+  remote_user: ansible-user
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+      become: yes
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+      become: yes
+    - name: copy the config files form control node to managed hosts
+      copy: src={{ item.src }} dest={{ item.dest }}
+      with_items:
+        - { src: '/etc/nginx/sites-available/default', dest: '/etc/nginx/sites-available/default' }
+        - { src: '/etc/nginx/sites-enabled/default', dest: '/etc/nginx/sites-enabled/default' }
+        - { src: '/etc/nginx/nginx.conf', dest: '/etc/nginx/nginx.conf' }
+        - { src: '/var/www/', dest: '/var/www/' }
+      become: yes
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
